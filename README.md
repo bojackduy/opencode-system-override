@@ -77,6 +77,31 @@ RAW_SYSTEM_OVERRIDE_END_9F3A
 Select the `Raw` agent and chat — the model sees only your text as its
 system prompt. Leave the space empty for a truly empty system (pure LLM).
 
+## Custom agents (any name works)
+
+The hook never checks the agent's name — it only looks for the marker pair
+in the assembled system text. So you can give any agent its own override by
+putting the markers in its file:
+
+```md
+---
+description: Code reviewer with no default baggage
+mode: primary
+permission:
+  "*": deny
+---
+
+RAW_SYSTEM_OVERRIDE_START_9F3A
+
+You are a senior reviewer. Be terse. Flag only real bugs.
+
+RAW_SYSTEM_OVERRIDE_END_9F3A
+```
+
+Each agent carries its own text between the markers; agents without markers
+are completely untouched. The shipped `agents/Raw.md` is just a blank
+starter — copy it to `Pirate.md`, `Reviewer.md`, whatever you like.
+
 ## How it works
 
 OpenCode assembles one system array per request. The
