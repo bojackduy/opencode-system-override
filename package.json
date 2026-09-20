@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@bojackduy/opencode-system-override",
+  "version": "0.1.0",
+  "description": "Overwrite the OpenCode system prompt per agent — a raw-system hook that replaces the assembled system with the prompt between markers in your agent file.",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bojackduy/opencode-system-override.git"
+  },
+  "homepage": "https://github.com/bojackduy/opencode-system-override#readme",
+  "bugs": {
+    "url": "https://github.com/bojackduy/opencode-system-override/issues"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "system-prompt",
+    "system-override",
+    "raw",
+    "agent",
+    "prompt"
+  ],
+  "bin": {
+    "opencode-system-override": "./scripts/install.mjs"
+  },
+  "files": [
+    "src",
+    "agents",
+    "scripts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": "./src/server.ts",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "bun test",
+    "build": "bun build src/server.ts --target=bun --external @opencode-ai/plugin --external @opencode-ai/sdk --outfile /tmp/system-override-server.js",
+    "prepack": "bun run typecheck && bun test && bun run build",
+    "release:patch": "bun run typecheck && bun test && npm version patch -m \"chore: release %s\" && git push && git push --tags",
+    "release:minor": "bun run typecheck && bun test && npm version minor -m \"chore: release %s\" && git push && git push --tags",
+    "release:major": "bun run typecheck && bun test && npm version major -m \"chore: release %s\" && git push && git push --tags"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "opencode": "^1.0.0",
+    "bun": ">=1.1.0"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.18.30",
+    "@types/bun": "^1.3.14",
+    "@types/node": "^26.2.0",
+    "typescript": "^5.7.0"
+  }
+}
