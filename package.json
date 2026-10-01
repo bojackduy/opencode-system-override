@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@bojackduy/opencode-system-override",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Overwrite the OpenCode system prompt per agent — a raw-system hook that replaces the assembled system with the prompt between markers in your agent file.",
   "type": "module",
   "license": "AGPL-3.0-or-later",
