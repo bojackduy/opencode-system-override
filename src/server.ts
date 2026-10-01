@@ -24,6 +24,23 @@ const PLUGIN_ID = "opencode-system-override"
 const START = "RAW_SYSTEM_OVERRIDE_START_9F3A"
 const END = "RAW_SYSTEM_OVERRIDE_END_9F3A"
 
+// Zen free-tier gating: anonymous free models at opencode.ai/zen only serve
+// requests carrying the opencode client User-Agent, and the vendor now also
+// requires a stable per-conversation `x-opencode-session` header (missing it
+// surfaces as "must using opencode for opencode free endpoint" / 429
+// FreeUsageLimitError). Inject both via the `chat.headers` hook so free
+// models keep working regardless of which agent (Raw or not) is active.
+//
+// - User-Agent: only set when absent or not already `opencode/*`, so we never
+//   clobber the real client UA or another plugin's contribution.
+// - x-opencode-session: stable per conversation → use the opencode sessionID
+//   directly (that is exactly the vendor's stated intent).
+// - Scoped to the `opencode` provider only, so we never leak session IDs or
+//   spoof UA to third-party providers.
+const OPENCODE_PROVIDER_ID = "opencode"
+const FALLBACK_USER_AGENT = "opencode/1.18.34"
+const SESSION_HEADER = "x-opencode-session"
+
 const server: Plugin = async ({ client }) => {
   const log = (message: string) => {
     try {
@@ -34,6 +51,24 @@ const server: Plugin = async ({ client }) => {
   }
 
   return {
+    "chat.headers": async (input, output) => {
+      // Only touch opencode-provider requests (Zen / Zen-Go free + paid).
+      const providerID =
+        input.model?.providerID ?? input.provider?.info?.id ?? input.provider?.info?.name
+      if (providerID !== OPENCODE_PROVIDER_ID) {
+        return
+      }
+      output.headers ??= {}
+      const existingUA =
+        output.headers["User-Agent"] ?? output.headers["user-agent"]
+      if (!existingUA || !existingUA.startsWith("opencode/")) {
+        output.headers["User-Agent"] = process.env.OPENCODE_USER_AGENT ?? FALLBACK_USER_AGENT
+      }
+      if (input.sessionID && !output.headers[SESSION_HEADER]) {
+        output.headers[SESSION_HEADER] = input.sessionID
+      }
+    },
+
     "experimental.chat.system.transform": async (_input, output) => {
       // Join defensively in case multiple system blocks exist.
       const assembled = output.system.join("\n")
